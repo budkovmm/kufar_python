@@ -1,29 +1,39 @@
 import asyncio
+import json
+
+from asyncpg.pool import Pool
 
 from src.db.db import get_pool
 from src.grabber.model import insert_ad
-from src.helpers import round_price
 from src.grabber.http_client import HTTPClient
-from src.grabber.dataclass import SearchResultModel, Currency
+from src.grabber.dataclass import Ad, Pagination
+
+
+def get_next_page_cursor(pagination: "Pagination"):
+    for page in pagination.pages:
+        if page.label == "next":
+            return page.token
+    return False
 
 
 async def main():
-    response = HTTPClient.get_ads(search_phrase="iphone")
-    search_result = SearchResultModel.from_http_response(response)
     db_pool = await get_pool()
-    connection = await db_pool.acquire()
-    row = str(response.content.decode("utf8"))
-    for ad in search_result.ads:
-        print("=======")
-        print(ad.ad_id)
-        print(ad.category)
-        print(ad.subject)
-        print(round_price(ad.price_byn), Currency.BYN.value)
-        print(round_price(ad.price_usd), Currency.USD.value)
-        print("=======")
-        await insert_ad(connection, ad=ad, row=row)
-    await db_pool.release(connection=connection)
-    print(search_result.total)
+    await handle_page(db_pool=db_pool)
+
+
+async def handle_page(db_pool: Pool, token=None):
+    response = HTTPClient.get_ads(search_phrase="iphone", token=token).json()
+    pagination = Pagination.from_dict(response["pagination"])
+    next_page_token = get_next_page_cursor(pagination)
+    if next_page_token:
+        coros = [
+            insert_ad(db_pool=db_pool, ad=Ad.from_dict(ad), row=json.dumps(ad))
+            for ad in response["ads"]
+        ]
+        await asyncio.gather(*coros)
+        await handle_page(db_pool=db_pool, token=next_page_token)
+    else:
+        print(response["total"])
 
 
 if __name__ == "__main__":

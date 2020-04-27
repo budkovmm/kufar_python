@@ -28,9 +28,10 @@ HEADERS = {
 
 class HTTPClient:
     @classmethod
-    def get_params(
+    def _get_params(
         cls,
         search_phrase,
+        token,
         size_of_announcement_on_page=42,
         language=Language.RU.value,
         ot=7,
@@ -42,12 +43,13 @@ class HTTPClient:
             rgn=rgn,
             size=size_of_announcement_on_page,
             lang=language,
+            cursor=token,
         )
 
     @classmethod
-    def get_ads(cls, search_phrase) -> Response:
+    def get_ads(cls, search_phrase, token) -> Response:
         return requests.get(
             url=f"{BASE_URL}{PATH}",
             headers=HEADERS,
-            params=cls.get_params(search_phrase),
+            params=cls._get_params(search_phrase, token),
         )

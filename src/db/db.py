@@ -1,7 +1,7 @@
 import asyncpg
 from asyncpg.pool import Pool
 
-KUFAR = "kufar"
+from src.constants import KUFAR
 
 
 async def get_pool() -> Pool:

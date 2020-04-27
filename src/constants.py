@@ -8,3 +8,6 @@ class Language(Enum):
 class Currency(Enum):
     BYN = "BYN"
     USD = "USD"
+
+
+KUFAR = "kufar"

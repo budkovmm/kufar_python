@@ -1,11 +1,19 @@
-from typing import Type
+from asyncpg.pool import Pool
 
-from asyncpg import Connection
-
+from src.constants import Currency
 from src.grabber.dataclass import Ad
+from src.helpers import round_price
 
 
-async def insert_ad(con: Connection, ad: "Ad", row):
+async def insert_ad(db_pool: Pool, ad: "Ad", row):
+    con = await db_pool.acquire()
+    print("=======")
+    print(ad.ad_id)
+    print(ad.category)
+    print(ad.subject)
+    print(round_price(ad.price_byn), Currency.BYN.value)
+    print(round_price(ad.price_usd), Currency.USD.value)
+    print("=======")
     await con.fetch(
         """
         INSERT INTO ads (kufar_id, title, link, json, price_usd)
@@ -20,3 +28,4 @@ async def insert_ad(con: Connection, ad: "Ad", row):
         row,
         str(ad.price_usd),
     )
+    await db_pool.release(connection=con)
