@@ -1,7 +1,9 @@
+from typing import Optional
+
 import requests
 from requests import Response
 
-from src.constants import Language
+from src.constants import Language, Category
 
 BASE_URL = "https://cre-api.kufar.by"
 PATH = "/ads-search/v1/engine/v1/search/rendered-paginated"
@@ -36,6 +38,7 @@ class HTTPClient:
         language=Language.RU.value,
         ot=7,
         rgn=7,
+        cat: Optional[Category] = None,
     ) -> dict:
         return dict(
             query=search_phrase,
@@ -44,12 +47,15 @@ class HTTPClient:
             size=size_of_announcement_on_page,
             lang=language,
             cursor=token,
+            cat=cat,
         )
 
     @classmethod
-    def get_ads(cls, search_phrase, token) -> Response:
+    def get_ads(
+        cls, search_phrase, token: Optional[str], cat: Optional[Category]
+    ) -> Response:
         return requests.get(
             url=f"{BASE_URL}{PATH}",
             headers=HEADERS,
-            params=cls._get_params(search_phrase, token),
+            params=cls._get_params(search_phrase, token, cat=cat),
         )

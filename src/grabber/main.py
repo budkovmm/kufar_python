@@ -3,6 +3,7 @@ import json
 
 from asyncpg.pool import Pool
 
+from src.constants import Category
 from src.db.db import get_pool
 from src.grabber.model import insert_ad
 from src.grabber.http_client import HTTPClient
@@ -22,7 +23,9 @@ async def main():
 
 
 async def handle_page(db_pool: Pool, token=None):
-    response = HTTPClient.get_ads(search_phrase="iphone", token=token).json()
+    response = HTTPClient.get_ads(
+        search_phrase="iphone", token=token, cat=Category.PHONES.value
+    ).json()
     pagination = Pagination.from_dict(response["pagination"])
     next_page_token = get_next_page_cursor(pagination)
     if next_page_token:
