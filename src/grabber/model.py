@@ -20,7 +20,12 @@ async def insert_ad(db_pool: Pool, ad: "Ad", row):
         VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (kufar_id)
         DO
-        UPDATE SET title = EXCLUDED.title, link = EXCLUDED.link, json = EXCLUDED.json, price_usd = EXCLUDED.price_usd
+        UPDATE SET
+            title = EXCLUDED.title,
+            link = EXCLUDED.link,
+            json = EXCLUDED.json,
+            price_usd = EXCLUDED.price_usd,
+            updated_at = now()
     """,
         ad.ad_id,
         ad.subject,
